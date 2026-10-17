@@ -49,12 +49,12 @@ module debounce_edge_detect #(
       counter               <= '0;
     end else begin
       sig_saved <= sig_synchro;
+	  sig_debounced_saved <= sig_debounced;
       if (ena_counter && (counter < CYCLES - 1)) begin
         counter <= counter + 1;
       end
-      else if (counter == CYCLES - 1) begin
-        sig_debounced_saved <= sig_debounced;
-        sig_debounced       <= sig_saved;
+      else if ((ena_counter) && (counter == CYCLES - 1)) begin
+        sig_debounced       <= sig_synchro;
         counter             <= '0;
       end
       else begin
