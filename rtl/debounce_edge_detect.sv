@@ -28,6 +28,50 @@ module debounce_edge_detect #(
 	end
   end
   
+  logic [$clog2(CYCLES)-1:0] counter;
+  logic sig_saved;
+  logic ena_counter;
   
+  always_comb begin
+    ena_counter = 1'b0;
+    if ((sig_saved == sig_synchro) && (sig_synchro != sig_debounced)) begin
+      ena_counter = 1'b1;
+    end
+  end
+  
+  logic sig_debounced_saved;
+  
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      sig_saved             <= 1'b0;
+      sig_debounced         <= 1'b0;
+      sig_debounced_saved   <= 1'b0;
+      counter               <= '0;
+    end else begin
+      sig_saved <= sig_synchro;
+      if (ena_counter && (counter < CYCLES - 1)) begin
+        counter <= counter + 1;
+      end
+      else if (counter == CYCLES - 1) begin
+        sig_debounced_saved <= sig_debounced;
+        sig_debounced       <= sig_saved;
+        counter             <= '0;
+      end
+      else begin
+        counter <= '0;
+      end
+    end
+  end
+  
+  always_comb begin
+    edge_rise = 1'b0;
+    edge_fall = 1'b0;
+    if ((sig_debounced_saved == 1'b1) && (sig_debounced == 1'b0)) begin
+      edge_fall = 1'b1;
+    end
+    else if ((sig_debounced_saved == 1'b0) && (sig_debounced == 1'b1)) begin
+      edge_rise = 1'b1;
+    end
+  end
 
 endmodule
