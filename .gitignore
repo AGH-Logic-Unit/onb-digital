@@ -1,0 +1,30 @@
+# Cocotb and Python simulation
+sim_build/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+results*.xml
+
+# Waveforms
+*.vcd
+*.fst
+*.ghw
+
+# EDA temporary files (Vivado, Quartus, Yosys)
+*.jou
+*.log
+*.str
+.Xil/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+
+# Virtual environment and IDE
+.venv/
+venv/
+ENV/
+.vscode/
+.idea/

@@ -1,0 +1,52 @@
+name: Onboarding Verification CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'rtl/**'
+      - 'sim/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'rtl/**'
+      - 'sim/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  run-simulation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'sim/requirements.txt'
+
+      - name: Install Cocotb dependencies
+        run: |
+          pip install -r sim/requirements.txt
+
+      - name: Run Task 1 tests (Debouncer)
+        run: |
+          cd sim && make test_debounce
+
+      - name: Run Task 2 tests (FIFO)
+        run: |
+          cd sim && make test_fifo
+
+      - name: Run Task 3 tests (UART TX)
+        run: |
+          cd sim && make test_uart
