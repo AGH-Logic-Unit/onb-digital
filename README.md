@@ -62,3 +62,50 @@ Good version control habits are an essential part of engineering teamwork:
   * `feat(uart): implement baud prescaler and 8N1 FSM`
 
 Once all local tests (`make all`) pass with **PASS** status, open a Pull Request targeting the `main` branch of the original repository using the provided template.
+
+---
+
+## Resources
+
+### Digital circuits basics and understanding
+
+* Ben Eater's [YouTube](https://www.youtube.com/@BenEater) and [website](https://eater.net) - protocols, electronics, computing
+* [Nand2Tetris](https://nand2tetris.org) course - boolean logic, gates, registers, hierarchical design, ALU, CPU, memory
+* H. Neemann's [Digital](https://github.com/hneemann/digital) - digital circuits simulator (with export to Verilog/VHDL)
+* [NandGame](https://nandgame.com/) - interactive web game, from gate to CPU
+* [Falstad Circuit Simulator](https://www.falstad.com/circuit/) - interactive browser-based electronic and logic simulation
+* Harris & Harris: Digital Design & Computer Architecture - comprehensive textbook from logic gates to RISC-V
+
+### Hardware Description Languages
+
+* [ChipVerify](https://chipverify.com) - reference, tutorials, SystemVerilog, Verilog
+* [HDLBits](https://hdlbits.01xz.net) - interactive Verilog learning platform
+* [EDA Playground](https://edaplayground.com/) - in-browser IDE for running Verilog/SystemVerilog simulations with zero setup
+* [Cliff Cummings (Sunburst Design) Papers](http://www.sunburst-design.com/papers/) - industry-standard papers on non-blocking assignments, FIFOs, and CDC
+
+### Hardware Verification & Cocotb
+
+* [Cocotb Documentation](https://docs.cocotb.org) - official guides, coroutines, triggers, and testbench structure
+* [Cocotb GitHub Examples](https://github.com/cocotb/cocotb/tree/master/examples) - reference designs and testbench patterns
+* [cocotb-coverage](https://github.com/mflow/cocotb-coverage) - functional coverage (covergroups, coverpoints) extension for Cocotb
+* [Verification Academy](https://verificationacademy.com/) - industry methodology, assertions, and verification concepts
+
+### Git
+
+* [Git101](https://github.com/AGH-Logic-Unit/git101) - ALU's cheatsheet
+* [Learn Git Branching](https://learngitbranching.js.org/) - interactive visual tutorial for branches, merges, and rebases
+* [Conventional Commits](https://www.conventionalcommits.org/) - standard specification for meaningful commit messages
+* [Oh Shit, Git!?!](https://ohshitgit.com/) - practical survival guide for recovering from common git mistakes
+
+### Hardware Protocols & Interfaces
+
+* [Analog Devices: UART Communication Protocol](https://www.analog.com/en/resources/analog-dialogue/articles/uart-a-hardware-communication-protocol.html) - engineering guide on 8N1 serial framing, baud rates, and timing
+
+### RTL Coding Style & Best Practices
+
+* [lowRISC Verilog/SystemVerilog Style Guide](https://github.com/lowRISC/style-guides/blob/master/VerilogCodingStyle.md) - industry standard for clean RTL design (OpenTitan)
+* [Stuart Sutherland: Standard Gotchas in SystemVerilog](https://sutherland-hdl.com/papers/2006-SNUG-Boston_standard_gotchas_paper.pdf) - classic paper on common hardware design and simulation pitfalls
+
+### Tooling & Waveform Inspection
+
+* [Surfer Manual](https://gitlab.com/surfer-project/surfer) - user manual, features, and keybindings for the Surfer waveform viewer
