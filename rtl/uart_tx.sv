@@ -27,32 +27,23 @@ module uart_tx #(
 
     logic [$clog2(CLKS_PER_BIT+1)-1:0] clk_counter;
 
-    always_ff @(posedge clk) begin
-        if (!rst_n || (uart_packet == 0)) begin
-            clk_counter <= 0;
-        end else begin
-            if (clk_counter == CLKS_PER_BIT) clk_counter <= 0;
-            else clk_counter <= clk_counter + 1;
-        end
-    end
+    localparam IDLE     = 2'b00;
+    localparam START    = 2'b01;
+    localparam DATA     = 2'b10;
+    localparam STOP     = 2'b11;
 
-    logic [9:0] uart_packet;
+    logic [1:0] state;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             txd <= 1;
             tx_ready <= 1;
-            uart_packet <= 0;
         end else begin
-            if (tx_valid && (uart_packet == 0)) begin
-                uart_packet <= {1'b1, tx_data, 1'b0};
-                tx_ready <= 0;
-            end else if (uart_packet != 0 && (clk_counter == 0)) begin
-                txd <= uart_packet[0];
-                uart_packet <= uart_packet >> 1;
-            end else if (uart_packet == 0) begin
-                tx_ready <= 1;
-            end
+            case (state)
+                IDLE: begin
+                    if (tx_ready && tx_valid) state <= START;
+                end
+            endcase
         end
     end
 
