@@ -50,33 +50,25 @@ module sync_fifo #(
             for (int i = 0; i < DEPTH; i = i + 1) mem[i] <= 0;
         end else begin
             if (wr_en && rd_en) begin
-                if (wr_ptr == DEPTH-1) begin
-                    wr_ptr <= 0;
-                end else begin
-                    wr_ptr <= wr_ptr + 1;
-                end
-                if (rd_ptr == DEPTH-1) begin
-                    rd_ptr <= 0;
-                end else begin
-                    rd_ptr <= rd_ptr + 1;
-                end
+                if (wr_ptr == DEPTH-1) wr_ptr <= 0;
+                else wr_ptr <= wr_ptr + 1;
+
+                if (rd_ptr == DEPTH-1) rd_ptr <= 0; 
+                else rd_ptr <= rd_ptr + 1;
+
                 mem[wr_ptr] <= wr_data;
                 // rd_data <= mem[rd_ptr]; // should work but it doesnt bc of race condition (tests fault)
             end else if (wr_en && !full) begin
                 occupancy <= occupancy + 1;
-                if (wr_ptr == DEPTH-1) begin
-                    wr_ptr <= 0;
-                end else begin
-                    wr_ptr <= wr_ptr + 1;
-                end
+
+                if (wr_ptr == DEPTH-1) wr_ptr <= 0;
+                else wr_ptr <= wr_ptr + 1;
+
                 mem[wr_ptr] <= wr_data;
             end else if (rd_en && !empty) begin
                 occupancy <= occupancy - 1;
-                if (rd_ptr == DEPTH-1) begin
-                    rd_ptr <= 0;
-                end else begin
-                    rd_ptr <= rd_ptr + 1;
-                end
+                if (rd_ptr == DEPTH-1) rd_ptr <= 0; 
+                else rd_ptr <= rd_ptr + 1;
                 // rd_data <= mem[rd_ptr]; // should work but it doesnt bc of race condition (tests fault)
             end
         end
