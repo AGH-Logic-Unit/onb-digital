@@ -44,3 +44,32 @@ async def test_debouncer_glitch_and_stable(dut):
 
     assert rise_detected, "Error: 1-cycle edge_rise pulse not detected!"
     assert dut.sig_debounced.value == 1, "Error: sig_debounced did not transition to high!"
+
+############################################################################ extra tests
+
+    # 4. Generate short glitch pulses
+    for _ in range(5):
+        dut.sig_in.value = 0
+        await Timer(50, unit="ns")
+        dut.sig_in.value = 1
+        await Timer(50, unit="ns")
+
+    assert dut.sig_debounced.value == 1, "Error: glitch noise changed sig_debounced!"
+    assert dut.edge_rise.value == 0, "Error: false edge_rise pulse during glitch noise!"
+
+    # 5. Apply stable low input (exceeding STABLE_TIME)
+    dut.sig_in.value = 0
+    # Wait for propagation
+    fall_detected = False
+    for _ in range(600_000):
+        await RisingEdge(dut.clk)
+        if dut.edge_fall.value == 1:
+            assert not fall_detected, "Error: edge_fall occurred more than once!"
+            fall_detected = True
+        if dut.sig_debounced.value == 0 and fall_detected:
+            break
+
+    assert fall_detected, "Error: 1-cycle edge_fall pulse not detected!"
+    assert dut.sig_debounced.value == 0, "Error: sig_debounced did not transition to low!"
+
+############################################################################
