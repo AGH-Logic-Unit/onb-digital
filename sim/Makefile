@@ -11,7 +11,8 @@ all: test_debounce test_fifo test_uart
 test_debounce:
 	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) sim \
 		SIM_BUILD=sim_build/debounce \
-		VERILOG_SOURCES=$(RTL_DIR)/debounce_edge_detect.sv \
+		VERILOG_SOURCES="$(RTL_DIR)/debounce_edge_detect.sv waves.v" \
+		COMPILE_ARGS="-s waves" \
 		TOPLEVEL=debounce_edge_detect \
 		MODULE=test_debounce
 
