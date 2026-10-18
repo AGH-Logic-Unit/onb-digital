@@ -22,7 +22,7 @@ module debounce_edge_detect #(
     parameter int unsigned CYCLES_REQUIRED = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000; // 500_000
 
     logic ff1, sig_sync, prev_sig_debounced;
-    logic [18:0] count;
+    logic [$clog2(CYCLES_REQUIRED1 + 1) - 1:0] count;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
