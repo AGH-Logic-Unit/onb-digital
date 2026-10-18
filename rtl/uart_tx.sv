@@ -30,7 +30,6 @@ module uart_tx #(
     always_ff @(posedge clk) begin
         if (!rst_n || (uart_packet == 0)) begin
             clk_counter <= 0;
-            tx_ready <= 1;
         end else begin
             if (clk_counter == CLKS_PER_BIT) clk_counter <= 0;
             else clk_counter <= clk_counter + 1;
@@ -42,6 +41,7 @@ module uart_tx #(
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             txd <= 1;
+            tx_ready <= 1;
             uart_packet <= 0;
         end else begin
             if (tx_valid && (uart_packet == 0)) begin
@@ -50,11 +50,10 @@ module uart_tx #(
             end else if (uart_packet != 0 && (clk_counter == 0)) begin
                 txd <= uart_packet[0];
                 uart_packet <= uart_packet >> 1;
+            end else if (uart_packet == 0) begin
+                tx_ready <= 1;
             end
         end
     end
-
-    // assign tx_ready = 1'b1;
-    // assign txd      = 1'b1;
 
 endmodule
