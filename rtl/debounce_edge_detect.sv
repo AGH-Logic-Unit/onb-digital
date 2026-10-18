@@ -18,24 +18,46 @@ module debounce_edge_detect #(
     // 3. Implement a counter measuring the stability interval.
     // 4. Update sig_debounced with the stable input state.
     // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
+    
     parameter int unsigned CYCLES_REQUIRED = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000; // 500_000
 
-    logic prev_sig_debounced;
-    logic [31:0] count;
-
-    assign sig_debounced = (count >= CYCLES_REQUIRED) ? 1 : 0;
+    logic ff1, sig_sync, prev_sig_debounced;
+    logic [18:0] count;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
+            ff1 <= 0;
+            sig_sync <= 0;
             count <= 0;
             edge_rise <= 0;
             edge_fall <= 0;
+            sig_debounced <= 0;
+            prev_sig_debounced <= 0;
         end else begin
-            count <= count + 1;
+            ff1 <= sig_in;
+            sig_sync <= ff1;
+
             edge_rise <= 0;
             edge_fall <= 0;
             prev_sig_debounced <= sig_debounced;
-            if (prev_sig_debounced == 0 && sig_debounced == 1) edge_rise <= 1;
+
+            if (sig_sync == 1 && count < CYCLES_REQUIRED && sig_debounced == 0) begin
+                count <= count + 1;
+            end else if (sig_sync == 0 && sig_debounced == 0) begin
+                count <= 0;
+            end else if (sig_debounced == 0 && count == CYCLES_REQUIRED) begin
+                sig_debounced <= 1;
+            end
+
+            if (sig_sync == 0 && count > 0 && sig_debounced == 1) begin
+                count <= count - 1;
+            end else if (sig_sync == 1 && sig_debounced == 1) begin
+                count <= CYCLES_REQUIRED;
+            end else if (sig_debounced == 1 && count == 0) begin
+                sig_debounced <= 0;
+            end
+
+            if (prev_sig_debounced == 0 && sig_debounced == 1) edge_rise <= 1; // is dealyed by cycle
             if (prev_sig_debounced == 1 && sig_debounced == 0) edge_fall <= 1;
         end
     end
