@@ -49,24 +49,35 @@ module sync_fifo #(
             occupancy <= 0;
             for (int i = 0; i < DEPTH; i = i + 1) mem[i] <= 0;
         end else begin
-            if (!(wr_en && rd_en)) begin
-                if (wr_en && !full) begin
-                    occupancy <= occupancy + 1;
-                    if (wr_ptr == DEPTH-1) begin // it can be just "wr_ptr <= wr_ptr + 1;" if depth is a power of 2
-                        wr_ptr <= 0;
-                    end else begin
-                        wr_ptr <= wr_ptr + 1;
-                    end
-                    mem[wr_ptr] <= wr_data;
-                end else if (rd_en && !empty) begin
-                    occupancy <= occupancy - 1;
-                    if (rd_ptr == DEPTH-1) begin // it can be just "rd_ptr <= rd_ptr + 1;" if depth is a power of 2
-                        rd_ptr <= 0;
-                    end else begin
-                        rd_ptr <= rd_ptr + 1;
-                    end
-                    // rd_data <= mem[rd_ptr]; //should work but it doesnt bc of race condition (tests fault)
+            if (wr_en && rd_en) begin
+                if (wr_ptr == DEPTH-1) begin // it can be just "wr_ptr <= wr_ptr + 1;" if depth is a power of 2
+                    wr_ptr <= 0;
+                end else begin
+                    wr_ptr <= wr_ptr + 1;
                 end
+                if (rd_ptr == DEPTH-1) begin // it can be just "rd_ptr <= rd_ptr + 1;" if depth is a power of 2
+                    rd_ptr <= 0;
+                end else begin
+                    rd_ptr <= rd_ptr + 1;
+                end
+                mem[wr_ptr] <= wr_data;
+                // rd_data <= mem[rd_ptr]; // should work but it doesnt bc of race condition (tests fault)
+            end else if (wr_en && !full) begin
+                occupancy <= occupancy + 1;
+                if (wr_ptr == DEPTH-1) begin // it can be just "wr_ptr <= wr_ptr + 1;" if depth is a power of 2
+                    wr_ptr <= 0;
+                end else begin
+                    wr_ptr <= wr_ptr + 1;
+                end
+                mem[wr_ptr] <= wr_data;
+            end else if (rd_en && !empty) begin
+                occupancy <= occupancy - 1;
+                if (rd_ptr == DEPTH-1) begin // it can be just "rd_ptr <= rd_ptr + 1;" if depth is a power of 2
+                    rd_ptr <= 0;
+                end else begin
+                    rd_ptr <= rd_ptr + 1;
+                end
+                // rd_data <= mem[rd_ptr]; // should work but it doesnt bc of race condition (tests fault)
             end
         end
     end
