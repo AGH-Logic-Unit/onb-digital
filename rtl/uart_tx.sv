@@ -25,7 +25,7 @@ module uart_tx #(
 
     parameter int unsigned CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE;
 
-    logic [$clog2(CLKS_PER_BIT+1)-1:0] clk_counter;
+    logic [$clog2(CLKS_PER_BIT+1)-1:0] clk_cnt;
 
     localparam IDLE     = 2'b00;
     localparam START    = 2'b01;
@@ -33,6 +33,7 @@ module uart_tx #(
     localparam STOP     = 2'b11;
 
     logic [1:0] state;
+    logic [7:0] tx_data_buf;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -41,7 +42,37 @@ module uart_tx #(
         end else begin
             case (state)
                 IDLE: begin
-                    if (tx_ready && tx_valid) state <= START;
+                    if (tx_ready && tx_valid) begin
+                        clk_cnt <= 0;
+                        state <= START;
+                    end
+                end
+                START: begin
+                    if (clk_cnt == 0) begin
+                        txd <= 0;
+                        tx_ready <= 0;
+                        tx_data_buf <= tx_data;
+                        clk_cnt <= clk_cnt + 1;
+                    end else if (clk_cnt == CLKS_PER_BIT-1) begin
+                        clk_cnt <= 0;
+                        bit_cnt <= 0;
+                        state <= DATA;
+                    end else begin
+                        clk_cnt <= clk_cnt + 1;
+                    end
+                end
+                DATA: begin
+                    if (clk_cnt == 0) begin
+                        txd <= tx_data_buf[0];
+                        tx_data_buf <= tx_data_buf >> 1;
+                        clk_cnt <= clk_cnt + 1;
+                    end else if (clk_cnt == CLKS_PER_BIT-1) begin
+                        clk_cnt <= 0;
+                        if (bit_cnt == 8) state <= STOP;
+                        else bit_cnt <= bit_cnt + 1;
+                    end else begin
+                        clk_cnt <= clk_cnt + 1;
+                    end
                 end
             endcase
         end
