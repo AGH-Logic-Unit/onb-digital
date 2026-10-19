@@ -34,12 +34,15 @@ async def test_fifo_push_pop_flags(dut):
     assert dut.empty.value == 0, "FIFO should not be empty"
 
     # Read and verify FIFO ordering
+    dut.rd_en.value = 1
+    await RisingEdge(dut.clk)
+
     for i in range(depth):
-        dut.rd_en.value = 1
+        if i == depth - 1:
+            dut.rd_en.value = 0  # Deassert on the last cycle to prevent extra read
         await RisingEdge(dut.clk)
         expected = (i * 7) & 0xFF
         assert dut.rd_data.value == expected, f"Data mismatch! Expected: {expected}, got: {dut.rd_data.value}"
 
-    dut.rd_en.value = 0
     await RisingEdge(dut.clk)
     assert dut.empty.value == 1, "FIFO should be empty after reading all elements"

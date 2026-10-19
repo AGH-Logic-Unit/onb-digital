@@ -28,9 +28,10 @@ module sync_fifo #(
     // TODO:
     // 1. Declare the RAM memory array: logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
     // 2. Implement write (wr_ptr) and read (rd_ptr) pointers.
-    // 3. Implement an occupancy counter.
-    // 4. Calculate flags: empty, full, almost_empty, almost_full.
-    // 5. Handle simultaneous read and write.
+    // 3. Implement synchronous registered read on rd_data when rd_en is asserted.
+    // 4. Implement an occupancy counter.
+    // 5. Calculate flags: empty, full, almost_empty, almost_full.
+    // 6. Handle simultaneous read and write.
 
     assign full         = 1'b0;
     assign almost_full  = 1'b0;
