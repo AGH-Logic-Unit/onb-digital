@@ -34,40 +34,25 @@ module sync_fifo #(
     // 6. Handle simultaneous read and write.
 
     logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
-    logic [$clog2(DEPTH):0] wr_ptr;
-    logic [$clog2(DEPTH):0] rd_ptr;
+    logic [$clog2(DEPTH)-1:0] wr_ptr;
+    logic [$clog2(DEPTH)-1:0] rd_ptr;
 
-    always_comb begin
-        if (wr_ptr >= rd_ptr) begin
-            assign occupancy = wr_ptr - rd_ptr;
-        end else begin // e.g. rd_ptr is still at 14 and wr_ptr wrapped to 0
-            assign occupancy = (DEPTH-1) - rd_ptr + wr_ptr + 1;
-        end
+    // always_comb begin
+    //     if (wr_ptr >= rd_ptr) begin
+    //         occupancy = wr_ptr - rd_ptr;
+    //     end else begin // e.g. rd_ptr is still at 14 and wr_ptr wrapped to 0
+    //         occupancy = (DEPTH-1) - rd_ptr + wr_ptr + 1;
+    //     end
+    // end
 
-        if (occupancy == (DEPTH-1)) begin
-            assign full = 1'b1;
-            assign almost_full = 1'b0;
-            assign almost_empty = 1'b0;
-            assign empty = 1'b0;
-        end else if (occupancy >= ALMOST_FULL_THRESH) begin
-            assign full = 1'b0;
-            assign almost_full = 1'b1;
-            assign almost_empty = 1'b0;
-            assign empty = 1'b0;
-        end else if (occupancy <= ALMOST_EMPTY_THRESH) begin
-            assign full = 1'b0;
-            assign almost_full = 1'b0;
-            assign almost_empty = 1'b1;
-            assign empty = 1'b0;
-        end else if (occupancy == 0) begin
-            assign full = 1'b0;
-            assign almost_full = 1'b0;
-            assign almost_empty = 1'b0;
-            assign empty = 1'b1;
-        end
-    end
+    // Not sure whether I should output only a single state at a time, 
+    // or all matching states simultaneously?
+    assign full = (occupancy == DEPTH);
+    assign almost_full = (occupancy >= ALMOST_FULL_THRESH) && (occupancy != DEPTH);
+    assign empty = (occupancy == 0);
+    assign almost_empty = (occupancy <= ALMOST_EMPTY_THRESH) && (occupancy != 0);
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             for (integer i = 0; i < DEPTH; i = i + 1) begin
                 mem[i] <= 0;
@@ -75,16 +60,19 @@ module sync_fifo #(
 
             wr_ptr <= 0;
             rd_ptr <= 0;
-            // rd_data <= 0;
+            rd_data <= 0;
+            occupancy <= 0;
         end else begin
-            if (wr_en) begin
+            if (wr_en && !full) begin
                 mem[wr_ptr] <= wr_data; 
                 wr_ptr <= wr_ptr + 1;   
+                occupancy <= occupancy + 1;
             end
 
-            if (rd_en) begin
+            if (rd_en && !empty) begin
                 rd_data <= mem[rd_ptr];
                 rd_ptr <= rd_ptr + 1;
+                occupancy <= occupancy - 1;
             end 
         end
     end
