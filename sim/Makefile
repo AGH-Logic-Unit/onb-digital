@@ -33,5 +33,8 @@ clean_all:
 	rm -rf sim_build results*.xml *.vcd *.fst
 
 ifneq ($(VERILOG_SOURCES),)
+ifeq ($(WAVES),1)
+override VERILOG_SOURCES += $(SIM_BUILD)/cocotb_iverilog_dump.v
+endif
 include $(shell cocotb-config --makefiles)/Makefile.sim
 endif
