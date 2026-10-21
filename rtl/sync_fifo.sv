@@ -63,6 +63,7 @@ module sync_fifo #(
                 
                 if (rd_ptr == DEPTH-1) rd_ptr <= 0; 
                 else rd_ptr <= rd_ptr + 1;
+                
                 rd_data <= mem[rd_ptr];
             end
         end

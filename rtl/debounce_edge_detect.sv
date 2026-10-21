@@ -21,7 +21,8 @@ module debounce_edge_detect #(
     
     parameter int unsigned CYCLES_REQUIRED = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000; // 500_000
 
-    logic ff1, sig_sync, prev_sig_debounced;
+    logic ff1, sig_sync;
+    logic prev_sig_debounced;
     logic [$clog2(CYCLES_REQUIRED + 1) - 1:0] count;
 
     always_ff @(posedge clk) begin
@@ -32,14 +33,14 @@ module debounce_edge_detect #(
             edge_rise <= 0;
             edge_fall <= 0;
             sig_debounced <= 0;
-            prev_sig_debounced <= 0;
+            // prev_sig_debounced <= 0;
         end else begin
             ff1 <= sig_in;
             sig_sync <= ff1;
 
             edge_rise <= 0;
             edge_fall <= 0;
-            prev_sig_debounced <= sig_debounced;
+            // prev_sig_debounced <= sig_debounced;
 
             if (sig_sync == 1 && count < CYCLES_REQUIRED && sig_debounced == 0) begin
                 count <= count + 1;
@@ -57,9 +58,12 @@ module debounce_edge_detect #(
                 sig_debounced <= 0;
             end
 
-            if (prev_sig_debounced == 0 && sig_debounced == 1) edge_rise <= 1; // is dealyed by cycle
-            if (prev_sig_debounced == 1 && sig_debounced == 0) edge_fall <= 1;
+            // if (prev_sig_debounced == 0 && sig_debounced == 1) edge_rise <= 1; // is dealyed by cycle but does generate pulse when x -> 0
+            // if (prev_sig_debounced == 1 && sig_debounced == 0) edge_fall <= 1;
         end
     end
+
+always_ff @(posedge sig_debounced) edge_rise <= 1;
+always_ff @(negedge sig_debounced) edge_fall <= 1; // generates edge fall pulse when switching from x to 0 (at the very start after reset).
 
 endmodule
