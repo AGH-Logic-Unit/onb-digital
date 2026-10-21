@@ -42,18 +42,18 @@ module debounce_edge_detect #(
             edge_fall <= 0;
             // prev_sig_debounced <= sig_debounced;
 
-            if (sig_sync == 1 && count < CYCLES_REQUIRED && sig_debounced == 0) begin
+            if (sig_sync == 1 && count < CYCLES_REQUIRED-1 && sig_debounced == 0) begin
                 count <= count + 1;
             end else if (sig_sync == 0 && sig_debounced == 0) begin
                 count <= 0;
-            end else if (sig_debounced == 0 && count == CYCLES_REQUIRED) begin
+            end else if (sig_debounced == 0 && count == CYCLES_REQUIRED-1) begin
                 sig_debounced <= 1;
             end
 
             if (sig_sync == 0 && count > 0 && sig_debounced == 1) begin
                 count <= count - 1;
             end else if (sig_sync == 1 && sig_debounced == 1) begin
-                count <= CYCLES_REQUIRED;
+                count <= CYCLES_REQUIRED-1;
             end else if (sig_debounced == 1 && count == 0) begin
                 sig_debounced <= 0;
             end
