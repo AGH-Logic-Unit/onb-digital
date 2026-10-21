@@ -23,7 +23,7 @@ module debounce_edge_detect #(
 
     logic ff1, sig_sync;
     logic prev_sig_debounced;
-    logic [$clog2(CYCLES_REQUIRED + 1) - 1:0] count;
+    logic [$clog2(CYCLES_REQUIRED) - 1:0] count;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -48,6 +48,7 @@ module debounce_edge_detect #(
                 count <= 0;
             end else if (sig_debounced == 0 && count == CYCLES_REQUIRED-1) begin
                 sig_debounced <= 1;
+                edge_rise <= 1;
             end
 
             if (sig_sync == 0 && count > 0 && sig_debounced == 1) begin
@@ -56,14 +57,9 @@ module debounce_edge_detect #(
                 count <= CYCLES_REQUIRED-1;
             end else if (sig_debounced == 1 && count == 0) begin
                 sig_debounced <= 0;
+                edge_fall <= 1;
             end
-
-            // if (prev_sig_debounced == 0 && sig_debounced == 1) edge_rise <= 1; // is dealyed by cycle but does generate pulse when x -> 0
-            // if (prev_sig_debounced == 1 && sig_debounced == 0) edge_fall <= 1;
         end
     end
-
-always_ff @(posedge sig_debounced) edge_rise <= 1;
-always_ff @(negedge sig_debounced) edge_fall <= 1; // generates edge fall pulse when switching from x to 0 (at the very start after reset).
 
 endmodule
