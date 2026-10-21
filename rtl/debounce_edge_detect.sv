@@ -19,10 +19,9 @@ module debounce_edge_detect #(
     // 4. Update sig_debounced with the stable input state.
     // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
     
-    parameter int unsigned CYCLES_REQUIRED = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000; // 500_000
+    localparam CYCLES_REQUIRED = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000; // 500_000
 
     logic ff1, sig_sync;
-    logic prev_sig_debounced;
     logic [$clog2(CYCLES_REQUIRED) - 1:0] count;
 
     always_ff @(posedge clk) begin
