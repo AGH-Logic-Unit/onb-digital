@@ -13,14 +13,52 @@ module debounce_edge_detect #(
 );
 
     // TODO:
-    // 1. Implement a 2-stage synchronizer on the sig_in input.
-    // 2. Calculate the required cycle count: CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000.
-    // 3. Implement a counter measuring the stability interval.
-    // 4. Update sig_debounced with the stable input state.
-    // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
+    // DONE - 1. Implement a 2-stage synchronizer on the sig_in input.
+    // DONE - 2. Calculate the required cycle count: CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000.
+    // DONE - 3. Implement a counter measuring the stability interval.
+    // DONE? - 4. Update sig_debounced with the stable input state.
+    // DONE? - 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
 
-    assign sig_debounced = 1'b0;
-    assign edge_rise      = 1'b0;
-    assign edge_fall      = 1'b0;
+    parameter CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000;
 
+    logic [$clog2(CYCLES)-1:0] counter;
+
+    logic ff1;
+    logic ff2;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            sig_debounced <= 1'b0;
+            edge_rise <= 1'b0;
+            edge_fall <= 1'b0;
+            ff1 <= 1'b0;
+            ff2 <= 1'b0;
+            counter <= 1'b0;
+        end else begin
+            ff1 <= sig_in;
+            ff2 <= ff1;
+
+            if (ff2) begin
+                if (counter > CYCLES) begin
+                    sig_debounced <= 1'b1;
+                    edge_rise <= 1'b1;
+                    edge_fall <= 1'b0;
+
+                    counter <= 1'b0;
+                end else begin
+                    //sig_debounced <= 1'b0;
+                    counter <= counter + 1;  
+                end
+            end else begin
+                sig_debounced <= 1'b0;
+                counter <= 1'b0;
+            end
+        end
+    end
+
+    always_ff @(negedge clk) begin
+        if (sig_debounced) begin
+            edge_fall <= 1'b1;
+        end 
+    end
 endmodule
