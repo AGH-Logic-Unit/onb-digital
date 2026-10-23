@@ -22,7 +22,24 @@ module uart_tx #(
     // 2. Build the state machine (FSM): IDLE, START, DATA, STOP.
     // 3. Transmit data bits in 8N1 format (LSB first).
     // 4. Manage the tx_ready flag to support back-to-back continuous transmission.
+	
+	logic [$clog2(CLKS_PER_BIT)-1:0] counter;
+    logic bit_tick;
 
+	always_ff @(posedge clk or negedge rst_n) begin
+		if (!rst_n) begin
+			counter <= '0;
+		end else begin
+			if (counter == CLKS_PER_BIT - 1) begin
+				counter <= '0;
+			end else begin
+				counter <= counter + 1'b1;
+			end
+		end
+	end
+
+	assign bit_tick = (counter == CLKS_PER_BIT - 1);
+	
     assign tx_ready = 1'b1;
     assign txd      = 1'b1;
 
