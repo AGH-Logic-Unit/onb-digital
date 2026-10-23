@@ -32,12 +32,40 @@ module sync_fifo #(
     // 4. Implement an occupancy counter.
     // 5. Calculate flags: empty, full, almost_empty, almost_full.
     // 6. Handle simultaneous read and write.
-
-    assign full         = 1'b0;
-    assign almost_full  = 1'b0;
-    assign empty        = 1'b1;
-    assign almost_empty = 1'b1;
-    assign rd_data      = '0;
-    assign occupancy    = '0;
-
+	
+	logic [DATA_WIDTH-1:0]  mem [0:DEPTH-1];
+	
+	logic [$clog2(DEPTH):0] wr_ptr;
+	logic [$clog2(DEPTH):0] rd_ptr;
+	
+	always_comb begin
+	
+	empty = (wr_ptr == rd_ptr);
+    full  = (wr_ptr[$clog2(DEPTH)] != rd_ptr[$clog2(DEPTH)]) && (wr_ptr[($clog2(DEPTH)-1):0] == rd_ptr[($clog2(DEPTH)-1):0]);
+    occupancy = wr_ptr - rd_ptr;
+	almost_full  = (occupancy >= ALMOST_FULL_THRESH);
+	almost_empty = (occupancy <= ALMOST_EMPTY_THRESH);
+	
+	end
+	
+	always_ff @(posedge clk or negedge rst_n) begin
+	
+	if (~rst_n) begin
+		wr_ptr  <= '0;
+        rd_ptr  <= '0;
+        rd_data <= '0;
+	end
+	else begin
+            if (wr_en && !full) begin
+                mem[wr_ptr[($clog2(DEPTH)-1):0]] <= wr_data;
+                wr_ptr <= wr_ptr + 1'b1; 
+            end
+            if (rd_en && !empty) begin
+                rd_data <= mem[rd_ptr[($clog2(DEPTH)-1):0]];
+                rd_ptr <= rd_ptr + 1'b1; 
+            end
+    end
+			
+	end
+	
 endmodule
