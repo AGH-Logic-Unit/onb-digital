@@ -23,6 +23,8 @@ module uart_tx #(
     // 3. Transmit data bits in 8N1 format (LSB first).
     // 4. Manage the tx_ready flag to support back-to-back continuous transmission.
 	
+	//Prescale Section
+	
 	logic [$clog2(CLKS_PER_BIT)-1:0] counter;
     logic bit_tick;
 
@@ -39,6 +41,49 @@ module uart_tx #(
 	end
 
 	assign bit_tick = (counter == CLKS_PER_BIT - 1);
+	
+	// State Machine Section
+	
+	typedef enum logic [1:0] {
+    IDLE  = 2'd0,
+    START = 2'd1,
+    DATA  = 2'd2,
+    STOP  = 2'd3
+	} state_t;
+
+	state_t State;
+	state_t Next_State;
+	logic [7:0] tx_data_saved,
+	
+	
+	always_comb begin
+		Next_State = State;
+		case (State)
+			IDLE: begin
+				if (tx_valid) begin
+					
+			end
+			START: begin
+			
+			end
+			DATA: begin
+			
+			end
+			STOP: begin
+			
+			end
+		endcase
+	end
+	
+	always_ff @(posedge clk or negedge rst_n) begin
+		 if (rst_n) begin
+			State <= IDLE;
+		 end
+		 else begin
+			State <= Next_State;
+		 end
+	end
+	
 	
     assign tx_ready = 1'b1;
     assign txd      = 1'b1;
