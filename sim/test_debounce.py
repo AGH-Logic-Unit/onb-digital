@@ -47,7 +47,6 @@ async def test_debouncer_glitch_and_stable(dut):
 
     assert rise_detected, "Error: 1-cycle edge_rise pulse not detected!"
     assert dut.sig_debounced.value == 1, "Error: sig_debounced did not transition to high!"
-<<<<<<< HEAD
 
     # 4. Verify that edge_rise is a 1-cycle pulse (drops back to 0 on the next cycle)
     await RisingEdge(dut.clk)
@@ -94,12 +93,3 @@ async def test_debouncer_glitch_and_stable(dut):
         await RisingEdge(dut.clk)
         assert dut.edge_fall.value == 0, "Error: spurious edge_fall pulse!"
 
-=======
-    
-    #to see if edge_rise falls on waveform
-    
-    await RisingEdge(dut.clk)
-    assert dut.edge_rise.value == 0, "Error: edge_rise lasted longer than 1 cycle!"
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
->>>>>>> 3867e10 (fix(git): issue with saving)
