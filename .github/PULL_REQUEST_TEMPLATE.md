@@ -24,11 +24,11 @@
 
 ### 3. Waveform Evidence (Surfer / optional GTKWave)
 *Please attach screenshots illustrating key corner cases:*
-1. **Debouncer:** Glitch filtering and the 1-cycle `edge_rise` pulse.
+1. **Debouncer:** Glitch filtering and the 1-cycle edge pulses (rising & falling).
    <!-- [Paste image here] -->
-2. **FIFO:** Full/empty flag transitions and read/write ordering.
+2. **FIFO:** Full/empty flag transitions, occupancy, and read/write ordering.
    <!-- [Paste image here] -->
-3. **UART TX:** Start bit, data serialization (LSB first), and Stop bit timing.
+3. **UART TX:** Start bit, data serialization (LSB first), Stop bit timing, and tx_ready handshake.
    <!-- [Paste image here] -->
 
 ---

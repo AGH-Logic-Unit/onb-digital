@@ -1,18 +1,9 @@
 name: Onboarding Verification CI
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'rtl/**'
-      - 'sim/**'
-      - '.github/workflows/**'
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ main ]
-    paths:
-      - 'rtl/**'
-      - 'sim/**'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
