@@ -29,7 +29,7 @@ module uart_tx #(
     //    CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE.
     // DONE - 2. Build the state machine (FSM): IDLE, START, DATA, STOP.
     // DONE - 3. Transmit data bits in 8N1 format (LSB first).
-    // DONE? - 4. Manage the tx_ready flag to support back-to-back continuous transmission.
+    // DONE - 4. Manage the tx_ready flag to support back-to-back continuous transmission.
 
     localparam int CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE;
 
@@ -42,74 +42,71 @@ module uart_tx #(
         if(!rst_n) begin
             tx_ready <= 1'b1;
             txd <= 1'b1;
-            state <= 1'b0;
+            state <= STATE_IDLE;
+
             clk_counter <= 0;
             tx_data_buffer <= 0;
             bits_sent <= 0;
         end else begin
-            if (state == STATE_IDLE) begin
-                tx_ready <= 1'b1; 
-                txd <= 1'b1;
+            case (state)
+                STATE_IDLE: begin
+                    tx_ready <= 1'b1;
+                    txd <= 1'b1;
 
-                // Begin transfer
-                if(tx_valid) begin
-                    tx_data_buffer <= tx_data;
-                    state <= STATE_START; 
-                    bits_sent <= 0;
-                end
-            end else begin
-                if (clk_counter < CLKS_PER_BIT) begin
-                    if (clk_counter == 0) begin // State start
-                        case (state) 
-                            STATE_START: begin
-                                tx_ready <= 1'b0;
-                                txd <= 1'b0;
-                            end
-                            STATE_DATA: begin
-                                tx_ready <= 1'b0;
-                                txd <= tx_data_buffer[bits_sent];
-                            end
-                            STATE_STOP: begin
-                                tx_ready <= 1'b0;
-                                txd <= 1'b1;
-                            end     
-                        endcase
-                    end else if(clk_counter == CLKS_PER_BIT-1) begin /// State end
-                        case (state) 
-                            STATE_START: begin
-                                tx_ready <= 1'b0;
-                                txd <= 1'b0;
-                                state <= STATE_DATA;
-                            end
-                            STATE_DATA: begin
-                                tx_ready <= 1'b0;
-                                txd <= 1'b0;
-                                if(bits_sent == 7) begin
-                                    state <= STATE_STOP;
-                                    bits_sent <= 0;
-                                end else begin
-                                    bits_sent <= bits_sent + 1;
-                                end
-                            end
-                            STATE_STOP: begin
-                                tx_ready <= 1'b0;
-                                txd <= 1'b0;
-
-                                if (bits_sent == (STOP_BITS-1)) begin // Send 1 (bits_sent == 0) or 2 (bits_sent == 1) stop bits
-                                    state <= STATE_IDLE;
-                                    bits_sent <= 0;
-                                end else begin
-                                    bits_sent <= bits_sent + 1;
-                                end
-                            end     
-                        endcase
+                    // Begin transfer
+                    if(tx_valid) begin
+                        tx_data_buffer <= tx_data;
+                        state <= STATE_START; 
+                        bits_sent <= 0;
+                        tx_ready <= 1'b0;
                     end
-                    
-                    clk_counter <= clk_counter + 1;
-                end else begin // Handle unexpected clk_counter values
-                    clk_counter <= 0;
-                end   
-            end
+                end
+                STATE_START: begin
+                    if (clk_counter == 0) begin
+                        txd <= 1'b0;
+                        clk_counter <= clk_counter + 1;
+                    end else if (clk_counter == CLKS_PER_BIT-1) begin       
+                        state <= STATE_DATA;
+                        clk_counter <= 0;
+                    end else begin
+                        clk_counter <= clk_counter + 1;
+                    end
+                end
+                STATE_DATA: begin
+                    if (clk_counter == 0) begin
+                        txd <= tx_data_buffer[bits_sent];
+                        clk_counter <= clk_counter + 1;
+                    end else if (clk_counter == CLKS_PER_BIT-1) begin
+                        if(bits_sent == 7) begin
+                            state <= STATE_STOP;
+                            bits_sent <= 0;
+                        end else begin
+                            bits_sent <= bits_sent + 1;
+                        end
+
+                        clk_counter <= 0;
+                    end else begin
+                        clk_counter <= clk_counter + 1;
+                    end
+                end
+                STATE_STOP: begin
+                    if (clk_counter == 0) begin
+                        txd <= 1'b1;     
+                        clk_counter <= clk_counter + 1;
+                    end else if (clk_counter == CLKS_PER_BIT-1) begin
+                        if (bits_sent == (STOP_BITS-1)) begin // Send 1 (bits_sent == 0) or 2 (bits_sent == 1) stop bits
+                            state <= STATE_IDLE;
+                            bits_sent <= 0;
+                        end else begin
+                            bits_sent <= bits_sent + 1;
+                        end
+
+                        clk_counter <= 0;
+                    end else begin
+                        clk_counter <= clk_counter + 1;
+                    end
+                end
+            endcase
         end
     end
 
