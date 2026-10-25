@@ -9,7 +9,8 @@ typedef enum logic [1:0] {
 
 module uart_tx #(
     parameter int unsigned CLK_FREQ_HZ = 50_000_000,
-    parameter int unsigned BAUD_RATE   = 115_200
+    parameter int unsigned BAUD_RATE   = 115_200,
+    parameter int unsigned STOP_BITS = 1
 ) (
     input  logic       clk,
     input  logic       rst_n,
@@ -24,7 +25,7 @@ module uart_tx #(
 );
 
     // TODO:
-    // DONE? - 1. Implement a clock prescaler generating bit clock ticks:
+    // DONE - 1. Implement a clock prescaler generating bit clock ticks:
     //    CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE.
     // DONE - 2. Build the state machine (FSM): IDLE, START, DATA, STOP.
     // DONE - 3. Transmit data bits in 8N1 format (LSB first).
@@ -84,7 +85,8 @@ module uart_tx #(
                                 tx_ready <= 1'b0;
                                 txd <= 1'b0;
                                 if(bits_sent == 7) begin
-                                    
+                                    state <= STATE_STOP;
+                                    bits_sent <= 0;
                                 end else begin
                                     bits_sent <= bits_sent + 1;
                                 end
@@ -93,7 +95,7 @@ module uart_tx #(
                                 tx_ready <= 1'b0;
                                 txd <= 1'b0;
 
-                                if (bits_sent == 1) begin
+                                if (bits_sent == (STOP_BITS-1)) begin // Send 1 (bits_sent == 0) or 2 (bits_sent == 1) stop bits
                                     state <= STATE_IDLE;
                                     bits_sent <= 0;
                                 end else begin
