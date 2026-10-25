@@ -48,10 +48,6 @@ module sync_fifo #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (integer i = 0; i < DEPTH; i = i + 1) begin
-                mem[i] <= 0;
-            end
-
             wr_ptr <= 0;
             rd_ptr <= 0;
             rd_data <= 0;
