@@ -37,14 +37,14 @@ module sync_fifo #(
     logic [$clog2(DEPTH)-1:0] wr_ptr;
     logic [$clog2(DEPTH)-1:0] rd_ptr;
 
-    // Not sure whether I should output only a single state at a time, 
-    // or all matching states simultaneously?
-    assign full = (occupancy == DEPTH);
-    assign almost_full = (occupancy >= ALMOST_FULL_THRESH) && (occupancy != DEPTH);
-    assign empty = (occupancy == 0);
-    assign almost_empty = (occupancy <= ALMOST_EMPTY_THRESH) && (occupancy != 0);
-
     assign simultaneous_rw = wr_en && rd_en;
+
+    always_comb begin
+        full = (occupancy == DEPTH);
+        almost_full = (occupancy >= ALMOST_FULL_THRESH);
+        empty = (occupancy == 0);
+        almost_empty = (occupancy <= ALMOST_EMPTY_THRESH); 
+    end
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
