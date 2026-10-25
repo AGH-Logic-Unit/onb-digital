@@ -44,6 +44,8 @@ module sync_fifo #(
     assign empty = (occupancy == 0);
     assign almost_empty = (occupancy <= ALMOST_EMPTY_THRESH) && (occupancy != 0);
 
+    assign simultaneous_rw = wr_en && rd_en;
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             for (integer i = 0; i < DEPTH; i = i + 1) begin
@@ -55,12 +57,19 @@ module sync_fifo #(
             rd_data <= 0;
             occupancy <= 0;
         end else begin
-            if (wr_en && !full) begin
-                mem[wr_ptr] <= wr_data; 
-                wr_ptr <= wr_ptr + 1;   
+            if (wr_en) begin 
+                if (full) begin // allow for write if reading simultaneously
+                    if (simultaneous_rw) begin
+                        mem[wr_ptr] <= wr_data; 
+                        wr_ptr <= wr_ptr + 1; // wrapping
+                    end
+                end else begin
+                    mem[wr_ptr] <= wr_data; 
+                    wr_ptr <= wr_ptr + 1;   
 
-                if(!(wr_en && rd_en)) begin
-                   occupancy <= occupancy + 1; 
+                    if(!simultaneous_rw) begin
+                        occupancy <= occupancy + 1; 
+                    end 
                 end
             end
 
@@ -68,9 +77,9 @@ module sync_fifo #(
                 rd_data <= mem[rd_ptr];
                 rd_ptr <= rd_ptr + 1;
 
-                if(!(wr_en && rd_en)) begin
+                if(!simultaneous_rw) begin
                     occupancy <= occupancy - 1;
-                end
+                end 
             end 
         end
     end
