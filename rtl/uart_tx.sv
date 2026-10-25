@@ -31,7 +31,7 @@ module uart_tx #(
     // DONE - 3. Transmit data bits in 8N1 format (LSB first).
     // DONE? - 4. Manage the tx_ready flag to support back-to-back continuous transmission.
 
-    localparam CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE;
+    localparam int CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE;
 
     logic [$clog2(CLKS_PER_BIT)-1:0] clk_counter;
     logic [3:0] bits_sent; // for state=2: count how many out of 8 bits are sent; for state=3 count how many out of 2 bits
