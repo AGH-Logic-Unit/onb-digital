@@ -16,6 +16,8 @@ module synchroniser (
             ff2 <= ff1;
         end
     end
+
+    assign sig_out = ff2;
 endmodule
 
 module debouncer #(
@@ -51,6 +53,40 @@ module debouncer #(
     assign sig_debounced = debounced;
 endmodule
 
+module edge_detector (
+    input  logic clk,
+    input  logic rst_n,
+    input  logic sig_in,
+    output logic edge_rise,
+    output logic edge_fall
+);
+    logic risen;
+    logic fallen;
+    always_ff @(posedge clk or negedge rst_n)
+        if (!rst_n) begin
+            risen <= 1'b0;
+            fallen <= 1'b0;
+            edge_rise <= 1'b0;
+            edge_fall <= 1'b0;
+        end else begin
+            if (sig_in && !risen) begin
+                edge_rise <= 1'b1;
+                risen <= 1'b1;
+                fallen <= 1'b0;
+            end else begin
+                edge_rise <= 1'b0;
+            end
+
+            if (!sig_in && !fallen) begin
+                edge_fall <= 1'b1;
+                fallen <= 1'b1;
+                risen <= 1'b0;
+            end else begin
+                edge_fall <= 1'b0;
+            end
+        end
+endmodule
+
 module debounce_edge_detect #(
     parameter int unsigned CLK_FREQ_HZ = 50_000_000,
     parameter int unsigned STABLE_TIME_MS = 10,
@@ -69,7 +105,7 @@ module debounce_edge_detect #(
     // DONE: 2. Calculate the required cycle count: CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000.
     // DONE: 3. Implement a counter measuring the stability interval.
     // DONE: 4. Update sig_debounced with the stable input state.
-    // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
+    // DONE: 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
 
     logic sig_sync;
     synchroniser sync(
@@ -84,11 +120,16 @@ module debounce_edge_detect #(
     ) deb (
         .clk(clk),
         .rst_n(rst_n),
-        .sig_in(sig_in),
+        .sig_in(sig_sync),
         .sig_debounced(sig_debounced)
     );
 
-    assign edge_rise = 1'b0;
-    assign edge_fall = 1'b0;
+    edge_detector detector (
+        .clk(clk),
+        .rst_n(rst_n),
+        .sig_in(sig_debounced),
+        .edge_rise(edge_rise),
+        .edge_fall(edge_fall)
+    );
 
 endmodule
