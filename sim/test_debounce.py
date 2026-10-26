@@ -88,8 +88,35 @@ async def test_debouncer_glitch_and_stable(dut):
     assert dut.edge_fall.value == 0, "Error: edge_fall lasted longer than 1 cycle!"
     assert dut.sig_debounced.value == 0, "Error: sig_debounced rose unexpectedly!"
 
-    # Allow waveform to clearly show the falling edge pulse falling back to 0
-    for _ in range(2):
+    # Keep input low for an extra period to ensure sig_debounced holds steady at 0
+    for _ in range(100):
         await RisingEdge(dut.clk)
+        assert dut.sig_debounced.value == 0, "Error: sig_debounced did not hold low state!"
         assert dut.edge_fall.value == 0, "Error: spurious edge_fall pulse!"
 
+@cocotb.test()
+async def test_realistic_bounce(dut):
+    """Test erratic bouncing before settling high."""
+    clock = Clock(dut.clk, 20, unit="ns")
+    cocotb.start_soon(clock.start())
+    await reset_dut(dut)
+
+    # Simulate chaotic mechanical bounce pattern
+    bounce_pattern = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1]
+    for val in bounce_pattern:
+        dut.sig_in.value = val
+        await Timer(200, unit="ns")
+
+    # Assert that during bouncing, sig_debounced has not prematurely triggered
+    assert dut.sig_debounced.value == 0, "Error: sig_debounced changed state during bouncing!"
+
+    # Hold the input stable high
+    dut.sig_in.value = 1
+    stabilized = False
+    for _ in range(600_000):
+        await RisingEdge(dut.clk)
+        if dut.sig_debounced.value == 1:
+            stabilized = True
+            break
+
+    assert stabilized, "Error: Debouncer failed to recognize the settled high state after bouncing!"
