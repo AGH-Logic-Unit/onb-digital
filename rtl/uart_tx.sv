@@ -22,8 +22,29 @@ module uart_tx #(
     // 2. Build the state machine (FSM): IDLE, START, DATA, STOP.
     // 3. Transmit data bits in 8N1 format (LSB first).
     // 4. Manage the tx_ready flag to support back-to-back continuous transmission.
-
+    
+    int unsigned CLKS_PER_BIT = (CLK_FREQ_HZ + BAUD_RATE/2) / BAUD_RATE;
+    
     assign tx_ready = 1'b1;
     assign txd      = 1'b1;
+    logic int_clk = 1'b0;
+
+    reg[9:0] counter = 0;
+
+    always @ (posedge clk) begin
+	    if (counter < CLKS_PER_BIT) begin
+	    	counter <= counter + 1;
+	    end
+	    else begin
+		counter <= 0;
+		int_clk <= 1'b1;
+	    end
+    end
+
+    always @ (negedge clk) begin
+	    if(counter <= 0) begin
+		    int_clk <= 1'b0;
+	    end
+    end
 
 endmodule
