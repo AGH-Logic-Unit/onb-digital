@@ -43,7 +43,7 @@ module debounce_edge_detect #(
 
             if (sig_debounced) begin
                 if (!ff2) begin
-                    if (counter > CYCLES) begin
+                    if (counter == CYCLES-1) begin
                         sig_debounced <= 1'b0;
                         edge_rise <= 1'b0;
                         edge_fall <= 1'b1;
@@ -56,7 +56,7 @@ module debounce_edge_detect #(
                 end
             end else begin
                 if (ff2) begin
-                    if (counter == CYCLES) begin
+                    if (counter == CYCLES-1) begin
                         sig_debounced <= 1'b1;
                         edge_rise <= 1'b1;
                         edge_fall <= 1'b0;
