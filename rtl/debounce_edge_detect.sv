@@ -59,19 +59,18 @@ module debounce_edge_detect #(
                                 edge_fall <= 1'b1;
                         end
 
-                    end
-                
-
-                    
+                    end      
                 end else begin
                     cycles <= 0;
-                end
-
-                
-                
-            end
-
-            
+                end  
+            end      
     end
-
 endmodule
+
+
+`ifdef COCOTB_SIM
+initial begin
+    $dumpfile("debounce.fst");
+    $dumpvars(0, debounce_edge_detect);
+end
+`endif
