@@ -36,7 +36,7 @@ module sync_fifo #(
     logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
     logic [3:0] wr_ptr,rd_ptr;
 
-    always_ff @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
             full         <= 1'b0;
             almost_full  <= 1'b0;
@@ -47,7 +47,12 @@ module sync_fifo #(
             wr_ptr       <= '0;
             rd_ptr       <= '0;
 
-
+        end else if (rd_en && wr_en && !empty && !full) begin
+            mem[wr_ptr] <= wr_data;
+            rd_data <= mem[rd_ptr];
+            rd_ptr <= rd_ptr+1;
+            wr_ptr <= wr_ptr+1;
+        
         end else if (wr_en && !full) begin
             mem[wr_ptr] <= wr_data;
             wr_ptr <= wr_ptr + 1;
@@ -66,16 +71,17 @@ module sync_fifo #(
 
         end else if (rd_en && !empty) begin
             rd_data <= mem[rd_ptr];
-            rd_ptr= rd_ptr+1;
-            occupancy= occupancy-1;
+            rd_ptr<= rd_ptr+1;
+            occupancy<= occupancy-1;
+            full <= 1'b0;
 
-            if (occupancy<=ALMOST_EMPTY_THRESH) begin
+            if (occupancy<=ALMOST_EMPTY_THRESH+1) begin
                 almost_empty <= 1'b1;
             end
-            if (occupancy<=ALMOST_FULL_THRESH-1) begin
+            if (occupancy<=ALMOST_FULL_THRESH) begin
                 almost_full <= 1'b0;
             end
-            if (occupancy==0) begin
+            if (occupancy==1) begin
                 empty<= 1'b1;
             end
 
@@ -83,3 +89,10 @@ module sync_fifo #(
     end
 
 endmodule
+
+`ifdef COCOTB_SIM
+initial begin
+    $dumpfile("fifo.fst");
+    $dumpvars(0, sync_fifo);
+end
+`endif
