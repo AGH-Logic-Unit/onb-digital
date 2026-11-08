@@ -47,9 +47,9 @@ module sync_fifo #(
     assign do_write = wr_en && (!full || do_read);
     
     assign empty = (occupancy == 0);
-    assign almost_empty = (occupancy <= 1);
+    assign almost_empty = (occupancy <= ALMOST_EMPTY_THRESH);
     assign full = (occupancy == DEPTH);
-    assign almost_full = (occupancy >= DEPTH - 1);
+    assign almost_full = (occupancy >= ALMOST_FULL_THRESH);
 
     always_ff @(posedge clk or negedge rst_n) begin
 	    if(!rst_n) begin
