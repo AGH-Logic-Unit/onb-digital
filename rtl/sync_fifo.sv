@@ -6,23 +6,23 @@ module sync_fifo #(
     parameter int unsigned ALMOST_FULL_THRESH  = 14,
     parameter int unsigned ALMOST_EMPTY_THRESH = 2
 ) (
-    input  logic                       clk,
-    input  logic                       rst_n,
+    input  logic                    clk,
+    input  logic                    rst_n,
 
     // Write interface
-    input  logic                       wr_en,
-    input  logic [DATA_WIDTH-1:0]      wr_data,
-    output logic                       full,
-    output logic                       almost_full,
+    input  logic                    wr_en,
+    input  logic [DATA_WIDTH-1:0]   wr_data,
+    output logic                    full,
+    output logic                    almost_full,
 
     // Read interface
-    input  logic                       rd_en,
-    output logic [DATA_WIDTH-1:0]      rd_data,
-    output logic                       empty,
-    output logic                       almost_empty,
+    input  logic                    rd_en,
+    output logic [DATA_WIDTH-1:0]   rd_data,
+    output logic                    empty,
+    output logic                    almost_empty,
 
     // Diagnostics / occupancy
-    output logic [$clog2(DEPTH+1)-1:0] occupancy
+    output logic [$clog2(DEPTH):0]  occupancy
 );
 
     logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
