@@ -23,10 +23,10 @@ module debounce_edge_detect #(
     //assign edge_rise     = 1'b0;
     //assign edge_fall     = 1'b0;
 
-    localparam CYCLES_REQ = (CLK_FREQ_HZ*STABLE_TIME_MS)/1000;
+    localparam int CYCLES_REQ = (CLK_FREQ_HZ*STABLE_TIME_MS)/1000;
     
     logic n1,n2;
-    logic [31:0] cycles;
+    logic [$clog2(CYCLES_REQ)-1:0] cycles;
 
     always_ff @(posedge clk, negedge rst_n) begin
             if (!rst_n) begin
@@ -53,9 +53,9 @@ module debounce_edge_detect #(
                     if (cycles>=CYCLES_REQ) begin
                         sig_debounced <= n2;
                         cycles <= 0;
-                        if (n2) begin
+                        if (n2 && !sig_debounced) begin
                                 edge_rise <= 1'b1;
-                        end else begin
+                        end else if (!n2 && sig_debounced) begin
                                 edge_fall <= 1'b1;
                         end
 

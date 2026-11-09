@@ -34,7 +34,7 @@ module sync_fifo #(
     // 6. Handle simultaneous read and write.
 
     logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
-    logic [3:0] wr_ptr,rd_ptr;
+    logic [$clog2(DEPTH)-1:0] wr_ptr,rd_ptr;
 
     always_ff @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
@@ -47,11 +47,12 @@ module sync_fifo #(
             wr_ptr       <= '0;
             rd_ptr       <= '0;
 
-        end else if (rd_en && wr_en && !empty && !full) begin
+        end else if (rd_en && wr_en && !full && !empty) begin
             mem[wr_ptr] <= wr_data;
             rd_data <= mem[rd_ptr];
             rd_ptr <= rd_ptr+1;
             wr_ptr <= wr_ptr+1;
+    
         
         end else if (wr_en && !full) begin
             mem[wr_ptr] <= wr_data;
