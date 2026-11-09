@@ -6,7 +6,7 @@ module d_ff(
 	input logic rst_n,
 	output reg q);
 
-	always @ (posedge clk or negedge rst_n) begin
+	always_ff @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			q <= 0;
 		end
@@ -27,7 +27,7 @@ module debouncer #(
 
 	reg[18:0] counter = 0;
 
-	always @(posedge clk or negedge rst_n) begin
+	always_ff @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			out <= 0;
 			counter <= 0;
@@ -56,10 +56,16 @@ module edge_detect (
 	
 	logic prev;
 
-	always @(posedge clk) begin
-		edge_fall <= (~sig_in) & prev;
-		edge_rise <= sig_in & (~prev);
-		prev <= sig_in;
+	always_ff @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			prev <= '0;
+		end
+
+		else begin
+			edge_fall <= (~sig_in) & prev;
+			edge_rise <= sig_in & (~prev);
+			prev <= sig_in;
+		end
 	end
 endmodule
 
