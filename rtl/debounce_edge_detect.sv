@@ -11,16 +11,34 @@ module debounce_edge_detect #(
     output logic edge_rise,
     output logic edge_fall
 );
+    parameter int unsigned CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000;
+    parameter int unsigned CYCLES_BITS = $clog2(CYCLES + 1);
 
-    // TODO:
-    // 1. Implement a 2-stage synchronizer on the sig_in input.
-    // 2. Calculate the required cycle count: CYCLES = (CLK_FREQ_HZ * STABLE_TIME_MS) / 1000.
-    // 3. Implement a counter measuring the stability interval.
-    // 4. Update sig_debounced with the stable input state.
-    // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
+    logic sig_d, sig_new;
 
-    assign sig_debounced = 1'b0;
-    assign edge_rise      = 1'b0;
-    assign edge_fall      = 1'b0;
+    always_ff @(posedge clk or negedge rst_n) begin
+        sig_d   <= rst_n & sig_in;
+        sig_new <= rst_n & sig_d;
+    end
+
+    logic [CYCLES_BITS-1:0] counter;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n || sig_new == sig_debounced) begin
+            counter <= '0;
+            edge_rise <= 0;
+            edge_fall <= 0;
+            if (!rst_n) sig_debounced <= 0;
+        end else if (counter != CYCLES) begin
+            counter <= counter + 1;
+            edge_rise <= 0;
+            edge_fall <= 0;
+        end else begin
+            counter <= 0;
+            edge_rise <= sig_new;
+            edge_fall <= !sig_new;
+            sig_debounced <= sig_new;
+        end
+    end
 
 endmodule

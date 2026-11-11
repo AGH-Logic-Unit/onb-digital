@@ -92,4 +92,3 @@ async def test_debouncer_glitch_and_stable(dut):
     for _ in range(2):
         await RisingEdge(dut.clk)
         assert dut.edge_fall.value == 0, "Error: spurious edge_fall pulse!"
-

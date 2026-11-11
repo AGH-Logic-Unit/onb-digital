@@ -25,19 +25,37 @@ module sync_fifo #(
     output logic [$clog2(DEPTH):0]  occupancy
 );
 
-    // TODO:
-    // 1. Declare the RAM memory array: logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
-    // 2. Implement write (wr_ptr) and read (rd_ptr) pointers.
-    // 3. Implement synchronous registered read on rd_data when rd_en is asserted.
-    // 4. Implement an occupancy counter.
-    // 5. Calculate flags: empty, full, almost_empty, almost_full.
-    // 6. Handle simultaneous read and write.
+    logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];
+    logic [$clog2(DEPTH)-1:0] rd_ptr, wr_ptr;
 
-    assign full         = 1'b0;
-    assign almost_full  = 1'b0;
-    assign empty        = 1'b1;
-    assign almost_empty = 1'b1;
-    assign rd_data      = '0;
-    assign occupancy    = '0;
+    logic read, write;
+    assign read  = rd_en & ~empty;
+    assign write = wr_en & ~full;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rd_ptr    <= 'b0;
+            wr_ptr    <= 'b0;
+            rd_data   <= 'b0;
+            occupancy <= 'b0;
+        end else begin
+            if (read) begin
+                rd_data <= mem[rd_ptr];
+                rd_ptr <= (rd_ptr == DEPTH - 1) ? 0 : rd_ptr + 1'b1;
+            end
+
+            if (write) begin
+                mem[wr_ptr] <= wr_data;
+                wr_ptr <= (wr_ptr == DEPTH - 1) ? 0 : wr_ptr + 1'b1;
+            end
+
+            occupancy <= occupancy + (write - read);
+        end
+    end
+
+    assign empty        = occupancy == 0;
+    assign full         = occupancy == DEPTH;
+    assign almost_full  = occupancy >= ALMOST_FULL_THRESH;
+    assign almost_empty = occupancy <= ALMOST_EMPTY_THRESH;
 
 endmodule

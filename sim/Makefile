@@ -13,21 +13,21 @@ test_debounce:
 		SIM_BUILD=sim_build/debounce \
 		VERILOG_SOURCES=$(RTL_DIR)/debounce_edge_detect.sv \
 		TOPLEVEL=debounce_edge_detect \
-		MODULE=test_debounce
+		COCOTB_TEST_MODULES=test_debounce
 
 test_fifo:
 	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) sim \
 		SIM_BUILD=sim_build/fifo \
 		VERILOG_SOURCES=$(RTL_DIR)/sync_fifo.sv \
 		TOPLEVEL=sync_fifo \
-		MODULE=test_fifo
+		COCOTB_TEST_MODULES=test_fifo
 
 test_uart:
 	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) sim \
 		SIM_BUILD=sim_build/uart \
 		VERILOG_SOURCES=$(RTL_DIR)/uart_tx.sv \
 		TOPLEVEL=uart_tx \
-		MODULE=test_uart_tx
+		COCOTB_TEST_MODULES=test_uart_tx
 
 clean_all:
 	rm -rf sim_build results*.xml *.vcd *.fst
