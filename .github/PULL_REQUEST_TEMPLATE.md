@@ -1,6 +1,6 @@
 ## Onboarding Tasks Submission – AGH Logic Unit
 
-**Contributor:** @<HeniexMush>
+**Contributor:** @HeniexMush
 
 ---
 
