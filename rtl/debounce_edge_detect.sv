@@ -19,8 +19,58 @@ module debounce_edge_detect #(
     // 4. Update sig_debounced with the stable input state.
     // 5. Generate 1-clock-cycle pulses for edge_rise and edge_fall.
 
-    assign sig_debounced = 1'b0;
-    assign edge_rise      = 1'b0;
-    assign edge_fall      = 1'b0;
+    //assign sig_debounced = 1'b0;
+    //assign edge_rise     = 1'b0;
+    //assign edge_fall     = 1'b0;
 
+    localparam int CYCLES_REQ = (CLK_FREQ_HZ*STABLE_TIME_MS)/1000;
+    
+    logic n1,n2;
+    logic [$clog2(CYCLES_REQ)-1:0] cycles;
+
+    always_ff @(posedge clk, negedge rst_n) begin
+            if (!rst_n) begin
+                cycles <= 0;
+                n2 <= 1'b0;            
+                n1 <= 1'b0;
+                sig_debounced <= 1'b0;
+                edge_rise <= 1'b0;
+                edge_fall <= 1'b0;
+
+            end else begin
+   
+                n1 <= sig_in;
+                n2 <=  n1;
+
+
+                edge_rise <= 1'b0;
+                edge_fall <= 1'b0;
+
+
+                if (n2!=sig_debounced) begin
+                    cycles <= cycles+1;
+                    
+                    if (cycles>=CYCLES_REQ) begin
+                        sig_debounced <= n2;
+                        cycles <= 0;
+                        if (n2 && !sig_debounced) begin
+                                edge_rise <= 1'b1;
+                        end else if (!n2 && sig_debounced) begin
+                                edge_fall <= 1'b1;
+                        end
+
+                    end      
+                end else begin
+                    cycles <= 0;
+                end  
+            end      
+    end
 endmodule
+
+
+`ifdef COCOTB_SIM
+initial begin
+    $dumpfile("debounce.fst");
+    $dumpvars(0, debounce_edge_detect);
+end
+`endif

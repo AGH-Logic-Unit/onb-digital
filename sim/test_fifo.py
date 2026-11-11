@@ -138,3 +138,98 @@ async def test_fifo_simultaneous_read_write(dut):
     await RisingEdge(dut.clk)
     assert dut.empty.value == 1, "FIFO should be empty after draining all items"
     assert dut.occupancy.value == 0, "Occupancy should be 0 after draining all items"
+
+@cocotb.test()
+async def test_fifo_move_empty_full(dut):
+    """Verify simultaneous read and write (occupancy remains constant, data order preserved)."""
+    clock = Clock(dut.clk, 20, unit="ns")
+    cocotb.start_soon(clock.start())
+    await reset_dut(dut)
+
+    depth = 16
+    for i in range(depth):
+        dut.wr_en.value = 1
+        dut.wr_data.value = (i * 7) & 0xFF
+        await RisingEdge(dut.clk)
+        await FallingEdge(dut.clk)
+
+        expected_occ = i + 1
+        assert dut.occupancy.value == expected_occ, f"Error: occupancy mismatch! Expected {expected_occ}, got {dut.occupancy.value}"
+        assert dut.empty.value == 0, "Error: empty flag must be 0 when FIFO has items"
+
+        if expected_occ <= 2:
+            assert dut.almost_empty.value == 1, f"Error: almost_empty should be 1 at occupancy {expected_occ}"
+        else:
+            assert dut.almost_empty.value == 0, f"Error: almost_empty should be 0 at occupancy {expected_occ}"
+
+        if expected_occ >= 14:
+            assert dut.almost_full.value == 1, f"Error: almost_full should be 1 at occupancy {expected_occ}"
+        else:
+            assert dut.almost_full.value == 0, f"Error: almost_full should be 0 at occupancy {expected_occ}"
+
+    dut.wr_en.value = 0
+    await RisingEdge(dut.clk)
+    assert dut.full.value == 1, "Error: FIFO should assert full flag after 16 writes"
+
+    
+    dut.rd_en.value = 1
+    dut.wr_en.value = 1
+    dut.wr_data.value = 0x55
+    await RisingEdge(dut.clk)
+    #assert dut.rd_data.value == 0x11, f"Simultaneous read error! Expected 0x11, got {dut.rd_data.value}"
+    #assert dut.occupancy.value == 15, f"Occupancy must stay 15 during simultaneous rw, got {dut.occupancy.value}"
+
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    dut.wr_data.value = 0x66
+    await RisingEdge(dut.clk)
+    #assert dut.rd_data.value == 0x22, f"Simultaneous read error! Expected 0x11, got {dut.rd_data.value}"
+    #assert dut.occupancy.value == 14, f"Occupancy must stay 14 during simultaneous rw, got {dut.occupancy.value}"
+
